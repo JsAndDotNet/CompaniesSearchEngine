@@ -1,0 +1,47 @@
+
+*** PLAN
+
+Search Engine Sites to Scan
+
+- Using a console, Import a list of websites from excel into Azure Table Storage.
+
+
+Search Engine Site Scan
+
+- Create a azure function on a timer (monthly?). It will:
+    - Read the list of websites to scan
+    - Put details for each one on the service bus ('url_to_scan')
+    
+
+- Storage Bus Queue Listener DURABLE Function (Search)
+    - Listen to 'url_to_scan' event and kick off. (may have an email address in data for notification)
+    - Scans websites
+    - Save pages text to azure table Storage (cosmos too expensive!)
+    - Send 'website_data_ready' message to service bus (may need to send on email address to this).
+
+- Storage Bus Queue Listener DURABLE Function (Aggregate)
+    - Listen for 'website_data_ready'
+    - Read data out of Table Storage and aggregate data
+    - Save data to Azure Table Storage
+    - Notify via email if required 
+        (just smpt it or something, unless sendgrid have a super quick template - don't put smtp creds in code!).
+
+
+Search Engine UI
+
+Just a console or v simple VANILLA javascript, so it'll still work when left for ages!
+    - Query via Az Function
+    - If has it, returns top level data as json (e.g. Vodafone 2, Boohoo 5 ...)
+    - If no data, asks to enter email address for notification when done. 
+      If email address added, creates a 'url_to_scan' event
+
+
+
+
+Investigations
+- Ideally we'd use service bus transactions, but using Basic tier to keep costs down, so transactions aren't available.
+- going with serverless to keep costs to minimum.
+- could use azure blob storage with cognitive search, but it would cost too much.
+- could use cosmosDB instead of table storage, but would cost roughly double on most basic plans.
+
+
