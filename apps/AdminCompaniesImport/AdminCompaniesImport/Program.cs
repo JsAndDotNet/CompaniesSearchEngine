@@ -1,27 +1,53 @@
 ﻿
 
+using AdminCompaniesImport;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
+using Shared.Classes;
+using SharedAzure.Dal;
+using SharedAzure.Storage;
 
 public class Program
 {
     public static void Main(string[] args)
     {
+        try
+        {
+            Task.Run(() => MainTask());
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.ToString());
+            Console.ReadLine();
+        }
+        
+    }
+
+
+    private static async Task MainTask()
+    {
+        ICsvFileHandler fileHandler = new CsvFileHandler();
+        IStorageProvider sp = new TableStorage();
+        ICompanyAndWebsiteInfoDal dal = new CompanyAndWebsiteInfoDal(sp);
+
         var config = new ConfigurationBuilder().AddUserSecrets<Program>().Build();
 
         var secretProvider = config.Providers.First();
-        if (!secretProvider.TryGet("JJ-TestSecret", out var secretPass)) return;
+        if (!secretProvider.TryGet("Az-Storage-Connection", out var conn))
+        {
+            Console.WriteLine("Could not init storage");
+            Console.ReadLine();
+            return;
+        }
 
 
+        // Check file path validity
+        string filePath = "";
         bool isValid = false;
-
-
-        // List<CompanyInfo> companyInfo = new List<CompanyInfo>();
-
         do
         {
             Console.WriteLine("Enter the file path for the URLs");
-            var filePath = Console.ReadLine();
+            filePath = Console.ReadLine();
             if (!File.Exists(filePath))
             {
                 Console.WriteLine("File does not exist. Try again.");
@@ -29,61 +55,15 @@ public class Program
                 continue;
             }
 
-
-            var file = File.ReadAllLines(filePath);
-
-            // Csv in format
-            // Indices	Stock Code	Yh Code	Company Name	Website	Description
-
-            foreach(var row in file)
-            {
-                
-                var split = row.Split(',');
-                if(split != null && split.Length == 6)
-                {
-                    var indices = split[0];
-                    if(indices.ToLower() == "indices")
-                    {
-                        continue;
-                    }
-
-                    var stockCode = split[1];
-                    var yhCode = split[2];
-                    var companyName = split[3];
-                    var website = split[4];
-                    var description = split[5];
-
-                    Uri uriResult;
-                    bool isValidUrl = Uri.TryCreate(website, UriKind.Absolute, out uriResult)
-    && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
-
-                    if(!isValidUrl)
-                    {
-                        Console.WriteLine($"Invalid URL {companyName}, {website}");
-                        Console.WriteLine($"Press enter to continue, or close window to abort.");
-                        Console.ReadLine();
-                    }
-
-
-
-
-                }
-
-                isValid = true;
-
-            }
-
-
-
-
+            isValid = true;
 
         } while (!isValid);
 
 
+        // Get companies
+        var companies = fileHandler.GetCompaniesFromFile(filePath);
 
-
-
-
-
+        await dal.SaveCompanies(conn, companies);
     }
 }
+
