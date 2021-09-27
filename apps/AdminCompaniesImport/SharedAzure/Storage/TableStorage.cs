@@ -48,17 +48,35 @@ namespace SharedAzure.Storage
         public async Task<List<CompanyAndWebsiteInfo>> GetAllCompanies()
         {
             var entities = new List<CompanyAndWebsiteInfo>();
-            TableContinuationToken token = null;
+
+            var query = new TableQuery<CompanyAndWebsiteInfo>();
+            TableContinuationToken continuationToken = null;
             do
             {
-                var queryResult = await _table.ExecuteQuerySegmentedAsync(new TableQuery<CompanyAndWebsiteInfo>(), token);
-                entities.AddRange(queryResult.Results);
-                token = queryResult.ContinuationToken;
-            } while (token != null);
+                var page = await _table.ExecuteQuerySegmentedAsync(query, continuationToken);
+                continuationToken = page.ContinuationToken;
+                entities.AddRange(page.Results);
+            }
+            while (continuationToken != null);
+
+
+
+            //var entities = new List<CompanyAndWebsiteInfo>();
+            //TableContinuationToken token = null;
+            //do
+            //{
+            //    var queryResult = await _table.ExecuteQuerySegmentedAsync(new TableQuery<CompanyAndWebsiteInfo>(), token);
+            //    entities.AddRange(queryResult.Results);
+            //    token = queryResult.ContinuationToken;
+            //} while (token != null);
 
 
             return entities.ToList(); ;
         }
+
+
+
+
 
 
         public async Task<T> UpsertAsnyc<T>(T entity) where T : AzEntityBase

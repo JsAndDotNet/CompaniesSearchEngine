@@ -20,21 +20,16 @@ namespace SharedAzure.Dal
     public class CompanyAndWebsiteInfoDal : ICompanyAndWebsiteInfoDal
     {
         IStorageProvider _storageProvider;
-        string _tableName = "companyandwebsiteinfo";
 
         public CompanyAndWebsiteInfoDal(IStorageProvider storageProvider)
         {
             _storageProvider = storageProvider;
         }
 
-
-
-
-
         public Task SaveCompanies(string connectionString,
             List<CompanyAndWebsiteInfo> companies)
         {
-            _storageProvider.Initialize(connectionString, _tableName);
+            _storageProvider.Initialize(connectionString, Shared.ENVIROVAR.STORAGE_COMPANIES_TABLE);
 
             //foreach(var company in companies)
             //{

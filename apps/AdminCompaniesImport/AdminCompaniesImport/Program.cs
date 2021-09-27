@@ -38,7 +38,7 @@ public class Program
             var config = new ConfigurationBuilder().AddUserSecrets<Program>().Build();
 
             var secretProvider = config.Providers.First();
-            if (!secretProvider.TryGet("Az-Storage-Connection", out var conn))
+            if (!secretProvider.TryGet("Az-Storage-Connection-Companies", out var conn))
             {
                 Console.WriteLine("Could not init storage");
                 Console.ReadLine();
