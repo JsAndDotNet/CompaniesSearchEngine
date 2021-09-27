@@ -8,6 +8,11 @@ namespace Shared.Classes
 {
 	public class CompanyAndWebsiteInfo : AzEntityBase
 	{
+        public CompanyAndWebsiteInfo()
+        {
+			// For retrieval in storage, need parameterless ctor
+        }
+
 		public CompanyAndWebsiteInfo(string indices, string stockCode, string companyName, string companyWebsite, string metaDescription)
 		{
 			Indices = indices;
@@ -16,6 +21,21 @@ namespace Shared.Classes
 			CompanyName = companyName;
 			CompanyWebsite = companyWebsite;
 		}
+
+		public void SetKey()
+        {
+			if(Indices.ToLower().Contains("ftse"))
+            {
+				this.PartitionKey = "pk_co_ftse";
+			}
+            else
+            {
+				this.PartitionKey = "pk_co_unk";
+			}
+
+			// e.g. FTSE_BP
+			this.RowKey = this.Indices.Replace(".", "") + "_" + this.StockCode.Replace(".", "");
+        }
 
 		public string Indices { get; set; }
 

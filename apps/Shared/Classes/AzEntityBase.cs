@@ -10,7 +10,7 @@ namespace Shared.Classes
 {
 
 
-	public abstract class AzEntityBase: TableEntity
+	public class AzEntityBase: TableEntity
 	{
 		public AzEntityBase()
 		{

@@ -14,6 +14,7 @@ public class Program
         try
         {
             Task.Run(() => MainTask());
+            Console.ReadLine();
         }
         catch (Exception ex)
         {
@@ -26,44 +27,57 @@ public class Program
 
     private static async Task MainTask()
     {
-        ICsvFileHandler fileHandler = new CsvFileHandler();
-        IStorageProvider sp = new TableStorage();
-        ICompanyAndWebsiteInfoDal dal = new CompanyAndWebsiteInfoDal(sp);
-
-        var config = new ConfigurationBuilder().AddUserSecrets<Program>().Build();
-
-        var secretProvider = config.Providers.First();
-        if (!secretProvider.TryGet("Az-Storage-Connection", out var conn))
+        try
         {
-            Console.WriteLine("Could not init storage");
-            Console.ReadLine();
-            return;
-        }
+            Console.WriteLine("Start");
 
+            ICsvFileHandler fileHandler = new CsvFileHandler();
+            IStorageProvider sp = new TableStorage();
+            ICompanyAndWebsiteInfoDal dal = new CompanyAndWebsiteInfoDal(sp);
 
-        // Check file path validity
-        string filePath = "";
-        bool isValid = false;
-        do
-        {
-            Console.WriteLine("Enter the file path for the URLs");
-            filePath = Console.ReadLine();
-            if (!File.Exists(filePath))
+            var config = new ConfigurationBuilder().AddUserSecrets<Program>().Build();
+
+            var secretProvider = config.Providers.First();
+            if (!secretProvider.TryGet("Az-Storage-Connection", out var conn))
             {
-                Console.WriteLine("File does not exist. Try again.");
-                Console.WriteLine();
-                continue;
+                Console.WriteLine("Could not init storage");
+                Console.ReadLine();
+                return;
             }
 
-            isValid = true;
 
-        } while (!isValid);
+            // Check file path validity
+            string filePath = @"C:\Git\CompaniesSearchEngine\apps\AdminCompaniesImport\AdminCompaniesImport\input-example\Company_And_Websites_truncated.csv";
+            //bool isValid = false;
+            //do
+            //{
+            //    Console.WriteLine("Enter the file path for the URLs");
+            //    filePath = Console.ReadLine();
+            //    if (!File.Exists(filePath))
+            //    {
+            //        Console.WriteLine("File does not exist. Try again.");
+            //        Console.WriteLine();
+            //        continue;
+            //    }
+
+            //    isValid = true;
+
+            //} while (!isValid);
 
 
-        // Get companies
-        var companies = fileHandler.GetCompaniesFromFile(filePath);
+            // Get companies
+            var companies = fileHandler.GetCompaniesFromFile(filePath);
 
-        await dal.SaveCompanies(conn, companies);
+            await dal.SaveCompanies(conn, companies);
+
+            Console.WriteLine("Done");
+            Console.ReadLine();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.ToString());
+            Console.ReadLine();
+        }
     }
 }
 

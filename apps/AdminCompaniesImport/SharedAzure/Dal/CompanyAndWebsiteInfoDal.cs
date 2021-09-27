@@ -10,6 +10,8 @@ namespace SharedAzure.Dal
 {
     public interface ICompanyAndWebsiteInfoDal
     {
+        Task<List<CompanyAndWebsiteInfo>> GetAllCompanies();
+
         Task SaveCompanies(
             string connectionString,
             List<CompanyAndWebsiteInfo> companies);
@@ -34,9 +36,20 @@ namespace SharedAzure.Dal
         {
             _storageProvider.Initialize(connectionString, _tableName);
 
+            //foreach(var company in companies)
+            //{
+            //    _storageProvider.UpsertAsnyc<CompanyAndWebsiteInfo>(company);
+            //}
+
+
             _storageProvider.BatchUpsertAsync<CompanyAndWebsiteInfo>(companies);
 
             return Task.FromResult(companies);
+        }
+
+        public async Task<List<CompanyAndWebsiteInfo>> GetAllCompanies()
+        {
+            return await _storageProvider.GetAllCompanies();
         }
     }
 }

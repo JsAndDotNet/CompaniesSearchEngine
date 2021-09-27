@@ -12,8 +12,10 @@ namespace SharedAzure.Storage
     public interface IStorageProvider
     {
         Task Initialize(string connectionString, string tableName);
+        Task<List<CompanyAndWebsiteInfo>> GetAllCompanies();
         Task<T> UpsertAsnyc<T>(T entity) where T : AzEntityBase;
         Task BatchUpsertAsync<T>(IEnumerable<T> data) where T : AzEntityBase;
+        
     }
 
     public class TableStorage : IStorageProvider
@@ -39,23 +41,35 @@ namespace SharedAzure.Storage
         }
 
 
+        /// <summary>
+        /// Todo - make this generic soon.
+        /// </summary>
+        /// <returns></returns>
+        public async Task<List<CompanyAndWebsiteInfo>> GetAllCompanies()
+        {
+            var entities = new List<CompanyAndWebsiteInfo>();
+            TableContinuationToken token = null;
+            do
+            {
+                var queryResult = await _table.ExecuteQuerySegmentedAsync(new TableQuery<CompanyAndWebsiteInfo>(), token);
+                entities.AddRange(queryResult.Results);
+                token = queryResult.ContinuationToken;
+            } while (token != null);
+
+
+            return entities.ToList(); ;
+        }
+
+
         public async Task<T> UpsertAsnyc<T>(T entity) where T : AzEntityBase
         {
             TableResult result = null;
 
-            try
-            {
-                TableOperation insertOperation = TableOperation.InsertOrReplace(entity);
+            TableOperation insertOperation = TableOperation.InsertOrReplace(entity);
 
-                result = await _table.ExecuteAsync(insertOperation);
+            result = await _table.ExecuteAsync(insertOperation);
 
-                Console.WriteLine("Created item in database: {0}", result.Result.ToString());
-            }
-            catch (Exception ex)
-            {
-                // TODO: What to do?
-            }
-
+            Console.WriteLine("Created item in database: {0}", result.Result.ToString());
 
             return entity;
         }
@@ -64,12 +78,21 @@ namespace SharedAzure.Storage
 
         public async Task BatchUpsertAsync<T>(IEnumerable<T> data) where T : AzEntityBase
         {
+
             int rowOffset = 0;
 
             while (rowOffset < data.Count())
             {
                 // next batch
                 var rows = data.Skip(rowOffset).Take(100).ToList();
+
+                var countPartitionKeys = rows.Select(_ => _.PartitionKey).Distinct().Count();
+
+                // Should not be hit in theory - move of a dev aid!
+                if(countPartitionKeys > 1)
+                {
+                    throw new InvalidOperationException("Cannot handle batches with mixed partitionkeys");
+                }
 
                 rowOffset += rows.Count;
 

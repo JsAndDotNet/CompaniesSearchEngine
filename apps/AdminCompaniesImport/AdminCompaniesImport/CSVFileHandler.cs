@@ -59,6 +59,7 @@ namespace AdminCompaniesImport
 
 
                     CompanyAndWebsiteInfo co = new CompanyAndWebsiteInfo(indices, stockCode, companyName, website, description);
+                    co.SetKey();
                     companies.Add(co);
                 }
             }
