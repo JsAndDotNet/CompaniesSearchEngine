@@ -46,5 +46,11 @@ namespace SharedAzure.Dal
         {
             return await _storageProvider.GetAllCompanies();
         }
+
+
+        public async Task<CompanyAndWebsiteInfo> GetCompanyFromKeys(string partitionKey, string rowKey)
+        {
+            return await _storageProvider.GetByRowKeys<CompanyAndWebsiteInfo>(partitionKey, rowKey);
+        }
     }
 }

@@ -22,24 +22,26 @@ namespace SearchFunctions
         {
             log.LogInformation("C# HTTP trigger function processed a request.");
 
-            IStorageProvider sp = new TableStorage();
-
             var storageConn = Environment.GetEnvironmentVariable("Az-Storage-Connection-Companies");
-
+            var sbConn = Environment.GetEnvironmentVariable("Az-ServiceBus-Connection");
+            
+            IStorageProvider sp = new TableStorage();
             await sp.Initialize(storageConn, Shared.ENVIROVAR.STORAGE_COMPANIES_TABLE);
             var companiesDal = new CompanyAndWebsiteInfoDal(sp);
+            SBSender sbSender = new SBSender(sbConn, "webcrawl");
+
+
+
             var companies = await companiesDal.GetAllCompanies();
 
             List<string> result = new List<string>();
 
             foreach (var comp in companies)
             {
-                result.Add(comp.RowKey);
+                result.Add(comp.PartitionKey + "|" +  comp.RowKey);
             }
 
 
-            var sbConn = Environment.GetEnvironmentVariable("Az-ServiceBus-Connection");
-            SBSender sbSender = new SBSender(sbConn, "webcrawl");
             sbSender.SendAsync(result);
 
 

@@ -13,6 +13,7 @@ namespace SharedAzure.Storage
     {
         Task Initialize(string connectionString, string tableName);
         Task<List<CompanyAndWebsiteInfo>> GetAllCompanies();
+        Task<T> GetByRowKeys<T>(string partitionKey, string rowKey) where T : AzEntityBase;
         Task<T> UpsertAsnyc<T>(T entity) where T : AzEntityBase;
         Task BatchUpsertAsync<T>(IEnumerable<T> data) where T : AzEntityBase;
         
@@ -59,22 +60,16 @@ namespace SharedAzure.Storage
             }
             while (continuationToken != null);
 
-
-
-            //var entities = new List<CompanyAndWebsiteInfo>();
-            //TableContinuationToken token = null;
-            //do
-            //{
-            //    var queryResult = await _table.ExecuteQuerySegmentedAsync(new TableQuery<CompanyAndWebsiteInfo>(), token);
-            //    entities.AddRange(queryResult.Results);
-            //    token = queryResult.ContinuationToken;
-            //} while (token != null);
-
-
             return entities.ToList(); ;
         }
 
 
+        public async Task<T> GetByRowKeys<T>(string partitionKey, string rowKey) where T: AzEntityBase
+        {
+            var ops = TableOperation.Retrieve<T>(partitionKey, rowKey);
+            var query = await _table.ExecuteAsync(ops);
+            return query.Result as T;
+        }
 
 
 
