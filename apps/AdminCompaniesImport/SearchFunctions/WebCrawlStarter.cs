@@ -10,12 +10,13 @@ using Newtonsoft.Json;
 using SharedAzure.Storage;
 using SharedAzure.Dal;
 using SharedAzure.ServiceBus;
+using System.Text.Json;
 
 namespace SearchFunctions
 {
-    public static class StartWebCrawl
+    public static class WebCrawlStarter
     {
-        [FunctionName("StartWebCrawl")]
+        [FunctionName("WebCrawlStarter")]
         public static async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequest req,
             ILogger log)
@@ -28,21 +29,25 @@ namespace SearchFunctions
             IStorageProvider sp = new TableStorage();
             await sp.Initialize(storageConn, Shared.ENVIROVAR.STORAGE_COMPANIES_TABLE);
             var companiesDal = new CompanyAndWebsiteInfoDal(sp);
-            SBSender sbSender = new SBSender(sbConn, "webcrawl");
-
+            ServiceBusSender sbSender = new ServiceBusSender(sbConn, "webcrawl");
 
 
             var companies = await companiesDal.GetAllCompanies();
 
             List<string> result = new List<string>();
+            var options = new JsonSerializerOptions { WriteIndented = false };
 
             foreach (var comp in companies)
             {
-                result.Add(comp.PartitionKey + "|" +  comp.RowKey);
+                log.LogInformation($"Adding company to service bus {comp.CompanyName}.");
+
+                string jsonString = System.Text.Json.JsonSerializer.Serialize(comp, options);
+
+                result.Add(jsonString);
             }
 
 
-            sbSender.SendAsync(result);
+            await sbSender.SendAsync(result);
 
 
             return new OkObjectResult("Companies Search Started");

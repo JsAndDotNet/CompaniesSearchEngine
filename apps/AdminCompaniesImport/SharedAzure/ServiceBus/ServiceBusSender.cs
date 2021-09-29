@@ -7,16 +7,16 @@ using System.Threading.Tasks;
 
 namespace SharedAzure.ServiceBus
 {
-    public class SBSender
+    public class ServiceBusSender
     {
         //client that owns the connection and can be used to create senders and receivers
         ServiceBusClient client;
 
         //sender used to publish messages to the queue
-        ServiceBusSender sender;
+        Azure.Messaging.ServiceBus.ServiceBusSender sender;
 
 
-        public SBSender(string conn, string queueName)
+        public ServiceBusSender(string conn, string queueName)
         {
             client = new ServiceBusClient(conn);
             sender = client.CreateSender(queueName);
