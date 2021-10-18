@@ -5,8 +5,11 @@ A bit hacky, but shows how one could save some sites into table storage, then us
 
 This project is just playing about - it doesn't crawl the sites.
 
+To set up:
+
+1. Manually create a service bus with a queue called 'webcrawl', then put the connection string into the Functions config. 
+2. Have a local Azure storage emulator running. It will use local table storage.
 
 
-Currently need to create a service bus with a queue called 'webcrawl', then put the connection string into the Functions config.
 
 A template has been created, but haven't yet created the powershell to run it.
