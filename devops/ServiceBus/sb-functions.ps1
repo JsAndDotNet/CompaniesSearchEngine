@@ -36,7 +36,7 @@ function  CreateOrGetSBQueue([string]$rgName, [string]$sbNamespace, [string]$sbQ
 
 
 
-function CreateOrGetSBAuthznRule([string] $rgName, [string] $sbNamespace, [string] $sbQName, [string] $sbAuthznRuleName, [string] $sbAuthznRuleRight_s){
+function CreateOrGetSBAuthznRule([string] $rgName, [string] $sbNamespace, [string] $sbQName, [string] $sbAuthznRuleName, [string[]] $sbAuthznRuleRight_s){
     # Type is 'send' or 'listen'
     $sbRule = Get-AzServiceBusAuthorizationRule -ResourceGroupName $rgName -NamespaceName  $sbNamespace -QueueName $sbQname -Name $sbAuthznRuleName -ErrorAction Ignore
 

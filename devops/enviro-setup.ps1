@@ -20,7 +20,7 @@ $sbQName = 'webcrawl'
 $sbIsQueueSessionRequired = $false # NOTE: Later, other queues might be session enabled
                                    #       Sessions enable FIFO for messages marked with the same SessionID
 $sbAuthznRuleName = "$sbQName-listen"
-$sbAuthznRuleRight_s = 'listen' # others are 'send' and 'manage'. Can have more than one (comma separated?)
+$sbAuthznRuleRight_s = @('listen') # others are 'send' and 'manage', but manage also requires the others e.g. @("Manage","Listen","Send"). Can have more than one (comma separated)
 
 $rg = CreateOrGetResourceGroup $rgName  $rgLocation
 
